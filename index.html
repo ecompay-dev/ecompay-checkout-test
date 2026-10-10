@@ -1,0 +1,327 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>ecomPay test shop</title>
+<style>
+  :root {
+    --ink: #141414;
+    --red: #cd2525;
+    --muted: #5b6068;
+    --line: #e1e4e8;
+    --bg: #f6f4ef;
+    --card: #ffffff;
+    --ok: #1e7b45;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  header { background: var(--ink); color: #fff; }
+  .bar { max-width: 1040px; margin: 0 auto; padding: 14px 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .brand { font-weight: 800; letter-spacing: -0.01em; font-size: 18px; }
+  .brand span { color: #ff6b6b; }
+  .tag { font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; border: 1.5px solid #ff6b6b; color: #ff9b9b; border-radius: 999px; padding: 3px 10px; }
+  main { max-width: 1040px; margin: 0 auto; padding: 22px 16px 60px; display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: 28px; align-items: start; }
+  h1 { font-size: 26px; margin: 0 0 4px; letter-spacing: -0.01em; }
+  h2 { font-size: 18px; margin: 0 0 12px; }
+  .lead { color: var(--muted); margin: 0 0 18px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 14px; }
+  .item { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 8px; }
+  .swatch { height: 86px; border-radius: 8px; display: grid; place-items: center; font-size: 34px; }
+  .item h3 { margin: 0; font-size: 16px; }
+  .item p { margin: 0; color: var(--muted); font-size: 14px; flex: 1; }
+  .row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .price { font-weight: 700; }
+  button { font: inherit; cursor: pointer; }
+  .add { border: 1.5px solid var(--ink); background: #fff; border-radius: 8px; padding: 6px 12px; font-weight: 600; }
+  .add:hover { background: var(--ink); color: #fff; }
+  aside { position: sticky; top: 16px; display: flex; flex-direction: column; gap: 16px; }
+  .panel { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 16px; }
+  .lines { list-style: none; margin: 0 0 10px; padding: 0; font-size: 15px; }
+  .lines li { display: flex; justify-content: space-between; gap: 8px; padding: 6px 0; border-bottom: 1px dashed var(--line); }
+  .lines li button { border: 0; background: none; color: var(--muted); padding: 0 4px; }
+  .empty { color: var(--muted); font-size: 14px; margin: 0 0 10px; }
+  .total { display: flex; justify-content: space-between; font-weight: 800; font-size: 18px; margin: 6px 0 12px; }
+  .go { width: 100%; background: var(--red); color: #fff; border: 0; border-radius: 10px; padding: 13px; font-weight: 700; font-size: 16px; }
+  .go:disabled { opacity: .45; cursor: not-allowed; }
+  .custom { display: flex; gap: 8px; margin-top: 10px; font-size: 14px; color: var(--muted); align-items: center; }
+  .custom input { width: 90px; font: inherit; padding: 6px 8px; border: 1.5px solid var(--line); border-radius: 8px; }
+  .custom button { border: 1.5px solid var(--line); background: #fff; border-radius: 8px; padding: 6px 10px; }
+  #checkout { display: none; }
+  #checkout.on { display: block; }
+  .back { border: 0; background: none; color: var(--muted); padding: 0; text-decoration: underline; margin-bottom: 10px; }
+  #result { display: none; margin-top: 14px; }
+  #result.on { display: block; }
+  #result p { margin: 4px 0; font-size: 14px; }
+  #result .status { font-weight: 800; font-size: 16px; }
+  #result .status.paid { color: var(--ok); }
+  #refund { margin-top: 10px; border: 1.5px solid var(--ink); background: #fff; border-radius: 8px; padding: 8px 12px; font-weight: 600; }
+  table { border-collapse: collapse; width: 100%; font-size: 13.5px; }
+  td { padding: 5px 0; vertical-align: top; border-bottom: 1px dashed var(--line); }
+  td:first-child { font-family: ui-monospace, Menlo, Consolas, monospace; white-space: nowrap; padding-right: 10px; }
+  td button { border: 0; background: none; color: var(--red); font-weight: 600; padding: 0; font-size: 12.5px; }
+  .note { font-size: 13px; color: var(--muted); margin: 8px 0 0; }
+  .setup label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; }
+  .setup input { width: 100%; font: inherit; font-size: 14px; padding: 8px 10px; border: 1.5px solid var(--line); border-radius: 8px; }
+  .setup .row { margin-top: 8px; }
+  .setup button { border: 1.5px solid var(--ink); background: var(--ink); color: #fff; border-radius: 8px; padding: 7px 12px; font-weight: 600; }
+  .err { color: var(--red); font-size: 14px; font-weight: 600; }
+  .ok { color: var(--ok); font-size: 13px; }
+  @media (max-width: 860px) {
+    main { grid-template-columns: 1fr; }
+    aside { position: static; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="bar">
+    <div class="brand">ecomPay test shop</div>
+    <div class="tag">Test mode</div>
+  </div>
+</header>
+
+<main>
+  <section>
+    <div id="shop">
+      <h1>Test shop</h1>
+      <p class="lead">A pretend shop for trying the ecomPay card checkout. Nothing here is real and no money moves. Add something to the basket and check out with a test card.</p>
+      <div class="grid" id="grid"></div>
+    </div>
+
+    <div id="checkout">
+      <button class="back" id="back" type="button">&larr; Back to the shop</button>
+      <h1>Checkout</h1>
+      <p class="lead" id="checkoutLead"></p>
+      <div id="pay"></div>
+      <div class="panel" id="result">
+        <p class="status" id="resStatus"></p>
+        <p id="resLines"></p>
+        <button id="refund" type="button" hidden>Refund this payment</button>
+      </div>
+    </div>
+  </section>
+
+  <aside>
+    <div class="panel">
+      <h2>Basket</h2>
+      <p class="empty" id="empty">Your basket is empty.</p>
+      <ul class="lines" id="lines"></ul>
+      <div class="total"><span>Total</span><span id="total">£0.00</span></div>
+      <button class="go" id="go" type="button" disabled>Check out</button>
+      <div class="custom">
+        <span>Or any amount: £</span>
+        <input id="customAmt" inputmode="decimal" placeholder="12.50" aria-label="Custom amount in pounds">
+        <button id="customGo" type="button">Pay</button>
+      </div>
+      <p class="err" id="goErr"></p>
+    </div>
+
+    <div class="panel">
+      <h2>Test cards</h2>
+      <table>
+        <tr><td>4200 0000 0000 0000</td><td>Approved</td></tr>
+        <tr><td>4111 1111 1111 1111</td><td>Declined</td></tr>
+        <tr><td>5555 5555 5555 4444</td><td>Approved (Mastercard)</td></tr>
+        <tr><td>4012 0000 0006 0085</td><td>3D Secure, no challenge</td></tr>
+        <tr><td>4066 3300 0000 0004</td><td>3D Secure, background check</td></tr>
+        <tr><td>4918 1900 0000 0002</td><td>3D Secure challenge</td></tr>
+      </table>
+      <p class="note">Any future expiry and any 3 digits. The limit per test payment is £50.</p>
+    </div>
+
+    <div class="panel setup">
+      <h2>Gateway</h2>
+      <label for="api">ecomPay server address</label>
+      <input id="api" placeholder="https://ecompay-cards-xxxx.onrender.com" spellcheck="false" autocomplete="off">
+      <div class="row"><span class="ok" id="apiOk"></span><button id="apiSave" type="button">Save</button></div>
+    </div>
+  </aside>
+</main>
+
+<script>
+(function () {
+  'use strict';
+
+  // Set this once the ecomPay server is live. A ?api= link or the Gateway box overrides it.
+  var DEFAULT_API = '';
+
+  var PRODUCTS = [
+    { id: 'pizza', name: 'Margherita pizza', note: '12 inch, stone baked', price: 950, icon: '🍕', bg: '#fdeee6' },
+    { id: 'garlic', name: 'Garlic bread', note: 'With mozzarella', price: 350, icon: '🥖', bg: '#fbf3dd' },
+    { id: 'salad', name: 'Garden salad', note: 'House dressing', price: 525, icon: '🥗', bg: '#e9f5e6' },
+    { id: 'lemonade', name: 'Cloudy lemonade', note: '330ml bottle', price: 220, icon: '🍋', bg: '#fdf8d9' },
+    { id: 'brownie', name: 'Chocolate brownie', note: 'Warm, with cream', price: 425, icon: '🍫', bg: '#efe6e1' },
+    { id: 'box', name: 'Party box for 6', note: 'Pizzas, sides and drinks', price: 4800, icon: '🎉', bg: '#ece9fb' },
+  ];
+
+  var $ = function (id) { return document.getElementById(id); };
+  var basket = {};
+  var api = '';
+  var sdkLoading = null;
+  var current = null;
+
+  function money(p) { return '£' + (p / 100).toFixed(2); }
+  function store(k, v) { try { if (v === undefined) return localStorage.getItem(k); localStorage.setItem(k, v); } catch (e) { return null; } }
+  function cleanUrl(u) {
+    u = String(u || '').trim().replace(/\/+$/, '');
+    if (!u) return '';
+    if (!/^https?:\/\//.test(u)) u = 'https://' + u;
+    try { return new URL(u).origin; } catch (e) { return ''; }
+  }
+
+  // ---------- gateway address ----------
+  var fromQuery = new URLSearchParams(location.search).get('api');
+  api = cleanUrl(fromQuery) || cleanUrl(store('ecp_api')) || cleanUrl(DEFAULT_API);
+  if (fromQuery && api) store('ecp_api', api);
+  $('api').value = api;
+  function checkApi() {
+    $('apiOk').textContent = '';
+    if (!api) { $('apiOk').textContent = 'Enter the server address to start.'; return; }
+    fetch(api + '/health').then(function (r) { return r.json(); }).then(function (j) {
+      $('apiOk').textContent = j && j.ok ? 'Connected' : 'Not reachable';
+    }).catch(function () { $('apiOk').textContent = 'Not reachable'; });
+  }
+  $('apiSave').onclick = function () {
+    api = cleanUrl($('api').value);
+    $('api').value = api;
+    store('ecp_api', api);
+    sdkLoading = null;
+    checkApi();
+  };
+  checkApi();
+
+  function loadSdk() {
+    if (window.EcomPay) return Promise.resolve();
+    if (sdkLoading) return sdkLoading;
+    sdkLoading = new Promise(function (resolve, reject) {
+      var s = document.createElement('script');
+      s.src = api + '/v1/ecompay.js';
+      s.onload = resolve;
+      s.onerror = function () { sdkLoading = null; reject(new Error('Could not load the card form from the server.')); };
+      document.head.appendChild(s);
+    });
+    return sdkLoading;
+  }
+
+  // ---------- shop ----------
+  PRODUCTS.forEach(function (p) {
+    var el = document.createElement('div');
+    el.className = 'item';
+    el.innerHTML = '<div class="swatch"></div><h3></h3><p></p><div class="row"><span class="price"></span><button class="add" type="button">Add</button></div>';
+    el.querySelector('.swatch').style.background = p.bg;
+    el.querySelector('.swatch').textContent = p.icon;
+    el.querySelector('h3').textContent = p.name;
+    el.querySelector('p').textContent = p.note;
+    el.querySelector('.price').textContent = money(p.price);
+    el.querySelector('.add').onclick = function () { basket[p.id] = (basket[p.id] || 0) + 1; drawBasket(); };
+    el.querySelector('.add').setAttribute('data-id', p.id);
+    $('grid').appendChild(el);
+  });
+
+  function total() {
+    return PRODUCTS.reduce(function (sum, p) { return sum + (basket[p.id] || 0) * p.price; }, 0);
+  }
+  function summary() {
+    return PRODUCTS.filter(function (p) { return basket[p.id]; }).map(function (p) { return basket[p.id] + ' x ' + p.name; }).join(', ');
+  }
+  function drawBasket() {
+    var ul = $('lines');
+    ul.innerHTML = '';
+    PRODUCTS.forEach(function (p) {
+      if (!basket[p.id]) return;
+      var li = document.createElement('li');
+      var left = document.createElement('span');
+      left.textContent = basket[p.id] + ' x ' + p.name;
+      var right = document.createElement('span');
+      right.textContent = money(basket[p.id] * p.price);
+      var rm = document.createElement('button');
+      rm.type = 'button';
+      rm.setAttribute('aria-label', 'Remove one ' + p.name);
+      rm.textContent = '−';
+      rm.onclick = function () { basket[p.id]--; if (!basket[p.id]) delete basket[p.id]; drawBasket(); };
+      right.appendChild(rm);
+      li.appendChild(left);
+      li.appendChild(right);
+      ul.appendChild(li);
+    });
+    var t = total();
+    $('empty').style.display = t ? 'none' : 'block';
+    $('total').textContent = money(t);
+    $('go').disabled = !t;
+    $('goErr').textContent = t > 5000 ? 'Test payments are limited to £50. Remove something to check out.' : '';
+    if (t > 5000) $('go').disabled = true;
+  }
+  drawBasket();
+
+  // ---------- checkout ----------
+  function startCheckout(amount, description) {
+    $('goErr').textContent = '';
+    if (!api) { $('goErr').textContent = 'Enter the ecomPay server address in the Gateway box first.'; $('api').focus(); return; }
+    $('go').disabled = true;
+    loadSdk().then(function () {
+      return fetch(api + '/demo/api/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ amount: amount, description: description }),
+      }).then(function (r) { return r.json().then(function (j) { if (!r.ok) throw new Error((j.error && j.error.message) || 'Could not start checkout.'); return j; }); });
+    }).then(function (s) {
+      current = s;
+      $('shop').style.display = 'none';
+      $('checkout').classList.add('on');
+      $('result').classList.remove('on');
+      $('checkoutLead').textContent = description + ' · ' + money(s.amount);
+      $('pay').innerHTML = '';
+      window.scrollTo(0, 0);
+      EcomPay.checkout({ clientSecret: s.client_secret })
+        .on('complete', showResult)
+        .on('failed', showResult)
+        .mount('#pay');
+    }).catch(function (e) {
+      $('goErr').textContent = e.message;
+    }).then(function () { drawBasket(); });
+  }
+
+  // The page asks the server for the real status: the browser event alone never proves payment.
+  function showResult() {
+    if (!current) return;
+    return fetch(api + '/demo/api/session/' + encodeURIComponent(current.id)).then(function (r) { return r.json(); }).then(function (s) {
+      $('result').classList.add('on');
+      $('resStatus').textContent = 'Server says: ' + s.status;
+      $('resStatus').className = 'status' + (s.status === 'paid' ? ' paid' : '');
+      var bits = [];
+      if (s.payment) bits.push((s.payment.card_brand || 'card') + ' ending ' + (s.payment.card_last4 || '????') + (s.payment.three_d_secure ? ', 3D Secure ' + s.payment.three_d_secure : ''));
+      if (s.amount_refunded) bits.push('Refunded ' + money(s.amount_refunded));
+      bits.push('Session ' + s.id);
+      $('resLines').textContent = bits.join(' · ');
+      $('refund').hidden = s.status !== 'paid';
+      if (s.status === 'paid') { basket = {}; drawBasket(); }
+    });
+  }
+
+  $('refund').onclick = function () {
+    $('refund').disabled = true;
+    fetch(api + '/demo/api/refund/' + encodeURIComponent(current.id), { method: 'POST' })
+      .then(function (r) { return r.json(); })
+      .then(showResult)
+      .then(function () { $('refund').disabled = false; });
+  };
+
+  $('go').onclick = function () { startCheckout(total(), summary()); };
+  $('customGo').onclick = function () {
+    var v = Math.round(parseFloat(String($('customAmt').value).replace(/[^\d.]/g, '')) * 100);
+    if (!v || v < 1) { $('goErr').textContent = 'Enter an amount, for example 12.50.'; return; }
+    if (v > 5000) { $('goErr').textContent = 'Test payments are limited to £50.'; return; }
+    startCheckout(v, 'Custom amount');
+  };
+  $('back').onclick = function () {
+    $('checkout').classList.remove('on');
+    $('shop').style.display = '';
+    $('pay').innerHTML = '';
+    current = null;
+  };
+})();
+</script>
+</body>
+</html>
