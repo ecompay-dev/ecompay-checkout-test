@@ -133,7 +133,7 @@
     <div class="panel setup">
       <h2>Gateway</h2>
       <label for="api">ecomPay server address</label>
-      <input id="api" placeholder="https://ecompay-cards-xxxx.onrender.com" spellcheck="false" autocomplete="off">
+      <input id="api" placeholder="https://api.ecompay.co.uk" spellcheck="false" autocomplete="off">
       <div class="row"><span class="ok" id="apiOk"></span><button id="apiSave" type="button">Save</button></div>
     </div>
   </aside>
@@ -144,7 +144,7 @@
   'use strict';
 
   // Set this once the ecomPay server is live. A ?api= link or the Gateway box overrides it.
-  var DEFAULT_API = 'https://ecompay-cards.onrender.com';
+  var DEFAULT_API = 'https://api.ecompay.co.uk';
 
   var PRODUCTS = [
     { id: 'pizza', name: 'Margherita pizza', note: '12 inch, stone baked', price: 950, icon: '🍕', bg: '#fdeee6' },
@@ -172,7 +172,10 @@
 
   // ---------- gateway address ----------
   var fromQuery = new URLSearchParams(location.search).get('api');
-  api = cleanUrl(fromQuery) || cleanUrl(store('ecp_api')) || cleanUrl(DEFAULT_API);
+  // An address saved before the move to api.ecompay.co.uk is replaced by the new one.
+  var saved = cleanUrl(store('ecp_api'));
+  if (saved && /onrender\.com/.test(saved)) saved = null;
+  api = cleanUrl(fromQuery) || saved || cleanUrl(DEFAULT_API);
   if (fromQuery && api) store('ecp_api', api);
   $('api').value = api;
   function checkApi() {
